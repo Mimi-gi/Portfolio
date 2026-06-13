@@ -1,50 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>須田律仁 - Portfolio</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
-</head>
-<body>
-    <canvas id="shader-background"></canvas>
-
-    <div id="content-wrapper">
-        <header class="window">
-            <h1>須田律仁</h1>
-            <p>情報理工学院1年 / デジタル創作サークル traP</p>
-            <nav>
-                <ul>
-                    <li><a href="#works">Works</a></li>
-                    <li><a href="#tech">Tech & Research</a></li>
-                </ul>
-            </nav>
-        </header>
-
-        <main>
-            <section id="works" class="window">
-                <h2>Works & Awards</h2>
-                <ul>
-                    <li><strong>kiichigojam 2026</strong> - 一般枠優秀賞</li>
-                    <li><strong>Island Puzzle（仮）</strong> - 3Dグリッドベースのパズルゲーム</li>
-                    <li><strong>Pixel Art</strong> - Aseprite等を用いたスプライトアニメーション</li>
-                </ul>
-            </section>
-
-            <section id="tech" class="window">
-                <h2>Tech & Research</h2>
-                <ul>
-                    <li><strong>関数型・形式検証:</strong> Rocqを用いた定理証明、Scala、Racket</li>
-                    <li><strong>グラフィックス:</strong> Pixel Composer等を活用したカスタムレンダリング、ディザリングフォグ表現</li>
-                    <li><strong>ゲーム開発:</strong> Unity (VFX Graph, Shader Graph, Input System)</li>
-                </ul>
-            </section>
-        </main>
-    </div>
-
-    <script src="js/main.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portfolio</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
