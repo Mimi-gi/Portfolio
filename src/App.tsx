@@ -10,7 +10,9 @@ function App() {
     <BrowserRouter>
       {/* 常に背面で描画されるWebGL / シェーダー層（SceneManagerのような役割のルート） */}
       <div className="canvas-layer">
-        <Canvas camera={{ position: [0, 0, 1] }}>
+        {/* OrthographicCameraを使用して、画面のピクセルサイズと1:1で対応する2D平面を描画する */}
+        {/* zoomは画面全体をどれだけ映すか。後ほどWindowリサイズに合わせて自動計算させます */}
+        <Canvas orthographic camera={{ position: [0, 0, 1], zoom: 1 }}>
           <BackgroundShader />
         </Canvas>
       </div>

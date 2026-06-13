@@ -1,99 +1,69 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
-// ============================================
-// 1. 頂点シェーダー (Vertex Shader)
-// ============================================
-const vertexShader = `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv; // uv座標(0.0 ~ 1.0)をフラグメントシェーダーへ送る
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`
-
-// ============================================
-// 2. フラグメントシェーダー (Fragment Shader)
-// ============================================
-const fragmentShader = `
-  uniform float uTime;
-  uniform vec2 uMouse;
-  varying vec2 vUv;
-
-  void main() {
-    // uvをベースに格子状のグリッドを作成
-    vec2 gridCount = vec2(30.0, 15.0);
-    vec2 gridId = floor(vUv * gridCount);
-    vec2 gridUv = fract(vUv * gridCount);
-    
-    // マウスカーソルとの距離を計算 (uMouseは 0.0 ~ 1.0 の範囲)
-    // 画面のアスペクト比補正は今回は簡易化のため省略
-    float dist = distance(vUv, uMouse);
-    
-    // マウスが近づくほど強く光る（波及効果）
-    float glow = exp(-dist * 8.0);
-    
-    // 時間と位置でサイン波を作り、流体・波のような揺らぎを追加
-    float wave = sin(gridId.x * 0.5 + uTime * 2.0) * sin(gridId.y * 0.5 + uTime * 2.0);
-    
-    // 基本の格子ラインを描画 (太さ調整用)
-    float lineThickness = 0.9 - (glow * 0.2); 
-    float line = step(lineThickness, gridUv.x) + step(lineThickness, gridUv.y);
-    
-    // 色の合成
-    vec3 baseColor = vec3(0.05, 0.1, 0.05); // 暗い緑
-    vec3 lineColor = vec3(0.2, 0.5, 0.2) * line;
-    vec3 interactColor = vec3(0.1, 0.8, 0.3) * glow * (wave * 0.5 + 0.5);
-
-    vec3 finalColor = baseColor + lineColor + interactColor;
-    
-    gl_FragColor = vec4(finalColor, 1.0);
-  }
-`
+// 外部GLSLファイルを読み込み
+import vertexShader from '../shaders/background.vert'
+import fragmentShader from '../shaders/background.frag'
 
 export default function BackgroundShader() {
   const materialRef = useRef<THREE.ShaderMaterial>(null)
   
-  // 状態の毎フレーム生成を避けるため useMemo を使用
-  const targetMouse = useMemo(() => new THREE.Vector2(0.5, 0.5), [])
+  // 実際のマウス位置と、Lerp（滑らかな追従）用のマウス位置
+  const currentMouse = useMemo(() => new THREE.Vector2(0, 0), [])
+  const targetMouse = useMemo(() => new THREE.Vector2(0, 0), [])
+  const { size } = useThree()
 
-  // useThreeを利用して、ウィンドウ全体のポインターを取得
-  const { pointer } = useThree()
+  // Canvasが前面のUI要素に覆われていてイベントを拾えないため、
+  // ウィンドウ全体のmousemoveイベントから座標を直接取得する
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      // 修正箇所1: モニターのスケーリング(DPR)を掛けて「物理ピクセル」に揃える
+      const dpr = window.devicePixelRatio
+      currentMouse.x = e.clientX * dpr
+      currentMouse.y = (window.innerHeight - e.clientY) * dpr
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [currentMouse])
 
-  // 毎フレーム呼ばれる処理 (Unityでの Update() に相当)
+  // 毎フレーム呼ばれる処理
   useFrame((state) => {
     if (!materialRef.current) return
 
-    // Time変数の更新
-    materialRef.current.uniforms.uTime.value = state.clock.elapsedTime
-
-    // pointer変数は -1.0 ~ 1.0 の範囲で返ってくるため、
-    // シェーダー(UV座標の 0.0 ~ 1.0)に合わせて変換する
-    const currentMouseX = (pointer.x + 1) / 2
-    const currentMouseY = (pointer.y + 1) / 2
+    // 画面サイズと時間の更新 (GLSL Canvasと同じ環境を作る)
+    materialRef.current.uniforms.u_time.value = state.clock.elapsedTime
+    // 修正箇所2: 解像度にもDPRを掛けて物理ピクセルサイズにする
+    materialRef.current.uniforms.u_resolution.value.set(
+      size.width * window.devicePixelRatio, 
+      size.height * window.devicePixelRatio
+    )
 
     // 簡易的なLerpでマウス追従を少し滑らかにする
-    targetMouse.x += (currentMouseX - targetMouse.x) * 0.1
-    targetMouse.y += (currentMouseY - targetMouse.y) * 0.1
+    targetMouse.x = (currentMouse.x ) 
+    targetMouse.y = (currentMouse.y )
 
-    materialRef.current.uniforms.uMouse.value.copy(targetMouse)
+    materialRef.current.uniforms.u_mouse.value.copy(targetMouse)
   })
 
   return (
     <mesh>
-      {/* 画面全体を覆う板(Plane) */}
-      <planeGeometry args={[2, 2]} />
+      {/* PlaneGeometryのサイズをウィンドウのサイズに追従させる */}
+      {/* Orthographicカメラの視野角と合わせて、ピクセルパーフェクトな2D描画を実現する */}
+      <planeGeometry args={[size.width, size.height]} />
       {/* GLSLシェーダーマテリアル */}
       <shaderMaterial
         ref={materialRef}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={{
-          uTime: { value: 0 },
-          uMouse: { value: new THREE.Vector2(0.5, 0.5) }
+          u_time: { value: 0 },
+          u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+          u_mouse: { value: new THREE.Vector2(0, 0) },
+          u_gridSize: { value: 50.0 }, // C#側のハードコード値
+          u_glowStrength: { value: 8.0 },
+          u_colorGrid: { value: new THREE.Color(1.0, 1.0, 1.0) } // ここが緑になっていたので白色(1.0, 1.0, 1.0)に修正
         }}
-        // 常に前面に描画させたい場合は depthWrite={false} など適宜
       />
     </mesh>
   )
