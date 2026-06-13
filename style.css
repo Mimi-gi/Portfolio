@@ -1,0 +1,66 @@
+/* 基本設定 */
+body {
+    font-family: 'DotGothic16', sans-serif;
+    background-color: #2b2b2b; /* ダークな背景 */
+    color: #e0e0e0;
+    margin: 0;
+    padding: 20px;
+    line-height: 1.6;
+    /* ドット絵をぼやけさせない魔法の設定 */
+    image-rendering: pixelated; 
+}
+
+/* ナビゲーションメニュー */
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    gap: 15px;
+}
+
+nav a {
+    color: #4da6ff;
+    text-decoration: none;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+/* ゲームウィンドウ風の装飾 */
+.window {
+    border: 4px solid #ffffff;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 24px;
+    background-color: #111111;
+}
+
+h1, h2 {
+    margin-top: 0;
+}
+
+ul {
+    padding-left: 20px;
+}
+
+/* --- 追記部分 --- */
+
+/* シェーダーを描画するキャンバスを背景として固定 */
+#shader-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; /* コンテンツより奥に配置 */
+    pointer-events: auto; /* マウスの動きを検知できるようにする */
+}
+
+/* 前面のコンテンツが背景に埋もれないようにする */
+#content-wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto; /* 画面の中央に配置 */
+}
