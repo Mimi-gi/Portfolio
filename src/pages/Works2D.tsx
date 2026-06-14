@@ -31,10 +31,10 @@ export default function Works2D() {
       }}
     >
       {/* セクション見出し */}
-      <h2>2D Works</h2>
+      <h2>Feature 2D Works</h2>
 
       {/* セクション説明文 */}
-      <p>PNG / GIF / MP4 を表示できる作品ギャラリーです。</p>
+      <p></p>
 
       {works.length === 0 ? (
         <p style={{ marginTop: '1rem', opacity: 0.9 }}>

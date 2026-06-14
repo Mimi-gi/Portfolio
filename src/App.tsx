@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import Home from './pages/Home'
 import Works2D from './pages/Works2D'
-import ShaderWorks from './pages/ShaderWorks'
 import About from './pages/About'
+import GameWorks from './pages/GameWorks'
 import BackgroundShader from './components/BackgroundShader'
 
 type Section = {
@@ -39,7 +39,7 @@ function App() {
       { id: 'home', label: 'Top', render: <Home /> },
       { id: 'about', label: 'About', render: <About /> },
       { id: 'works2d', label: '2D Works', render: <Works2D /> },
-      { id: 'shaderworks', label: 'Shader Works', render: <ShaderWorks /> },
+      { id: 'gameworks', label: 'Game', render: <GameWorks /> },
     ],
     [],
   )

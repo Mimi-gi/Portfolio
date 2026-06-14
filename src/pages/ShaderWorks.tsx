@@ -1,6 +1,6 @@
 import ShaderPreviewCanvas from '../components/ShaderPreviewCanvas'
 
-import neonRingsFrag from '../shaders/works/neonRings.frag'
+import eulerFluiedFrag from '../shaders/works/euler_Fluied.frag'
 import pixelFlowFrag from '../shaders/works/pixelFlow.frag'
 
 type ShaderWorkItem = {
@@ -12,9 +12,9 @@ type ShaderWorkItem = {
 
 const shaderWorks: ShaderWorkItem[] = [
   {
-    title: 'Neon Rings',
-    fragmentShader: neonRingsFrag,
-    description: '同心円の歪みとマウス反応で構成した発光エフェクト。',
+    title: 'Euler Fluid Burst',
+    fragmentShader: eulerFluiedFrag,
+    description: '圧力を色で可視化し、クリック地点からランダム発散を発生。',
   },
   {
     title: 'Pixel Flow',
@@ -41,7 +41,7 @@ export default function ShaderWorks() {
       <h2>Shader Works</h2>
 
       {/* セクション説明文 */}
-      <p>Shadertoy のように、フラグメントシェーダーで描画した作品を掲載するギャラリーです。</p>
+      <p></p>
 
       {/* 作品プレビュー領域 */}
       <div

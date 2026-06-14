@@ -32,6 +32,96 @@ float smin(float a,float b,float k){
   return mix(b,a,h)-k*h*(1.-h);
 }
 
+float hash21(vec2 p){
+  p=fract(p*vec2(123.34,345.45));
+  p+=dot(p,p+34.345);
+  return fract(p.x*p.y);
+}
+
+vec2 hash22(vec2 p){
+  float n1=hash21(p+vec2(13.37,41.79));
+  float n2=hash21(p+vec2(97.13,11.53));
+  return vec2(n1,n2);
+}
+
+float triangularLife(float t,float peak,float halfWidth){
+  float w=max(halfWidth,0.0001);
+  return max(0.,1.-abs(t-peak)/w);
+}
+
+float voronoiStar(vec2 uv,float cellScale,vec2 jitter){
+  vec2 g=uv*cellScale;
+  vec2 base=floor(g);
+
+  float minDist=1e9;
+  vec2 nearestCell=vec2(0.);
+
+  for(int oy=-1;oy<=1;oy++){
+    for(int ox=-1;ox<=1;ox++){
+      vec2 cell=base+vec2(float(ox),float(oy));
+      vec2 samplePoint=cell+hash22(cell+jitter);
+      float d=length(g-samplePoint);
+      if(d<minDist){
+        minDist=d;
+        nearestCell=cell;
+      }
+    }
+  }
+
+  float loopT=mod(u_time,5.0);
+  float peak=hash21(nearestCell+jitter+vec2(1.7,9.3))*5.0;
+  float lifeWidth=mix(0.25,0.5,hash21(nearestCell+jitter+vec2(4.2,8.8))); // 0.5s~1.0sの幅
+  float life=triangularLife(loopT,peak,lifeWidth);
+
+  float maxRadius=mix(0.03,0.1,hash21(nearestCell+jitter+vec2(7.1,2.4)));
+  float radius=maxRadius*life;
+  float core=smoothstep(radius,0.,minDist);
+
+  return core*life;
+}
+
+vec3 getSpaceBaseBackground(vec2 uv){
+  // うっすらとした宇宙の下地
+  vec2 p=uv*2.-1.;
+  p.x*=u_resolution.x/max(u_resolution.y,1.);
+  float cloud=0.5+0.5*sin(p.x*2.1+p.y*2.7+u_time*0.06);
+  return mix(vec3(0.01,0.015,0.05),vec3(0.03,0.05,0.11),cloud*0.35+0.2);
+}
+
+float getStarIntensity(vec2 uv){
+  // Voronoiセルごとのランダム点を使った瞬き星
+  float stars=0.;
+  stars+=voronoiStar(uv,55.,vec2(0.17,0.31))*0.9;
+  stars+=voronoiStar(uv+vec2(0.37,0.19),85.,vec2(0.71,0.53))*0.6;
+  return stars;
+}
+
+vec3 getSpaceBackground(vec2 coord){
+  vec2 uv=coord/u_resolution.xy;
+  vec3 bg=getSpaceBaseBackground(uv);
+  float stars=getStarIntensity(uv);
+
+  vec3 starCol=vec3(0.78,0.87,1.)*stars;
+  vec3 bloom=vec3(1.)*pow(stars,3.)*0.35;
+  return bg+starCol+bloom;
+}
+
+vec3 getPixelatedSpaceBackground(vec2 coord,float pixelSize){
+  vec2 cellMin=floor(coord/pixelSize)*pixelSize;
+  vec2 center=cellMin+pixelSize*0.5;
+  vec2 uv=center/u_resolution.xy;
+
+  // ピクセル化: セル中心で1回だけ評価
+  vec3 col=getSpaceBaseBackground(uv);
+  float levels=6.;
+  col=floor(col*levels)/levels;
+
+  // 星描画: ピクセル化後の座標で星を評価
+  float stars=getStarIntensity(uv);
+  float starAlpha=smoothstep(0.02,0.22,stars);
+  return mix(col,vec3(0.8667,0.8588,1.0),starAlpha);
+}
+
 float divideLerp(int N,int n,float t)
 {
   if(N <= 0 || n < 0 || n >= N) return 0.;
@@ -89,19 +179,18 @@ vec3 getAboutEffect(vec2 coord,float tailScale){
     fishColor=vec3(0.4, 0.5333, 0.902);
   }
   vec3 currentEffect=shadeFishFromDistance(d,fishColor);
-  return applyTrail(coord,currentEffect,0.9);
+  vec3 trailEffect=applyTrail(coord,currentEffect,0.9);
+  vec3 stars=getSpaceBackground(coord);
+  return max(stars,trailEffect);
 }
 
 vec3 getWorks2DEffect(vec2 coord){
-  // TODO: 宇宙背景（星雲/星）を追加予定
   float pixelSize=8.;
   vec2 pixelCoord=floor(coord/pixelSize)*pixelSize+pixelSize*0.5;
   float d=getFishDistance(pixelCoord,1.);
-  vec3 fish=shadeFishFromDistance(d,vec3(.62,.92,.72));
+  vec3 fish=shadeFishFromDistance(d,vec3(0.6196, 0.7255, 0.9216));
 
-  vec2 gridUv=floor(coord/pixelSize);
-  float checker=mod(gridUv.x+gridUv.y,2.);
-  vec3 bg=mix(vec3(0.02,0.03,0.05),vec3(0.03,0.04,0.08),checker);
+  vec3 bg=getPixelatedSpaceBackground(coord,pixelSize);
   return max(bg,fish*0.95);
 }
 

@@ -44,7 +44,7 @@ const settings: HomeSettings = {
   container: {
     width: '80%',
     maxWidth: '1940px',
-    minHeight: '78vh',
+    minHeight: '70vh',
     marginTop: '0.5rem',
     marginLeft: '1rem',
     gap: '0.9rem',
@@ -193,7 +193,7 @@ export default function Home() {
           display: 'flex',
           flexWrap: 'wrap',
           gap: '0.5rem',
-          marginTop: '0.8rem',
+          marginTop: '1.0rem',
         }}
       >
         {settings.links.map((link) => (
