@@ -88,7 +88,7 @@ function App() {
       {/* 前面のコンテンツ層（UIキャンバスのような役割） */}
       <div className="content-layer" ref={setScrollContainer}>
         <nav>
-          <h1>My Portfolio</h1>
+          <h1>Mimi</h1>
           <div className="links">
             {sections.map((section, index) => (
               <button

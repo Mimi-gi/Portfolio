@@ -8,8 +8,8 @@ html,
 body {
   width: 100%;
   min-height: 100%;
-  background-color: #0f1710;
-  color: #a0d8a5; /* ドット絵風・レトロな雰囲気を出すカラー */
+  background-color: #160060;
+  color: #ffffff; /* ドット絵風・レトロな雰囲気を出すカラー */
   font-family: 'Courier New', Courier, monospace;
   overflow-x: hidden;
 }
@@ -57,11 +57,10 @@ nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px dashed #a0d8a5;
+  border-bottom: 2px dashed #ffffff;
   padding-bottom: 1rem;
   margin-bottom: 2rem;
-  background: rgba(15, 23, 16, 0.8);
-  backdrop-filter: blur(8px);
+  background: rgba(41, 0, 174, 0);
   z-index: 3;
 }
 
@@ -72,21 +71,21 @@ nav .links {
 
 nav button {
   background: transparent;
-  border: 1px solid transparent;
+  border: none;
   cursor: pointer;
-  color: #4ade80;
+  color: rgba(255, 255, 255, 0.58);
   text-decoration: none;
   font-weight: bold;
   font-size: 1.1rem;
   padding: 0.2rem 0.5rem;
-  transition: color 0.2s, border-color 0.2s;
+  transition: color 0.2s, text-shadow 0.2s, transform 0.2s;
 }
 
 nav button:hover,
 nav button.active {
-  color: #fff;
-  border-color: #4ade80;
-  text-shadow: 0 0 5px #4ade80;
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(103, 160, 255, 0.95), 0 0 18px rgba(59, 122, 255, 0.65);
+  transform: translateY(-1px);
 }
 
 .page-content {
@@ -94,14 +93,14 @@ nav button.active {
 }
 
 .page-section {
-  min-height: 120vh;
+  min-height: 100vh;
   scroll-snap-align: start;
   display: flex;
   flex-direction: column; /* 【追加】中身を縦並びにする */
   align-items: center;    /* 横方向の中央揃え（columnの場合） */
-  justify-content: center;/* 【追加】縦方向の中央揃え */
+  justify-content: flex-start;
   border-bottom: 1px dashed rgba(160, 216, 165, 0.2);
-  padding: 2rem 0;
+  padding: 1rem 0 1.5rem;
 }
 
 /* ページ見出し等の基本スタイル */

@@ -32,13 +32,21 @@ float smin(float a,float b,float k){
   return mix(b,a,h)-k*h*(1.-h);
 }
 
+float divideLerp(int N,int n,float t)
+{
+  if(N <= 0 || n < 0 || n >= N) return 0.;
+
+  if(t <= float(n)/float(N)) return 0.;
+  if(t >= float(n + 1)/float(N)) return 1.;
+  return (1.-t)*float(n)/float(N) + t*float(n + 1)/float(N);
+}
 
 float getFishDistance(vec2 coord,float tailScale){
   float d=10000.;
   for(int i=0;i<JOINT_COUNT-1;i++){
     float baseRadius=mix(18.,2.,float(i)/float(JOINT_COUNT-1));
-    float scale=i==0?1.:tailScale;
-    float r=max(baseRadius*scale,.001);
+    float scale=i==0?1.:divideLerp(JOINT_COUNT-1,i,tailScale);
+    float r=max(baseRadius*scale,.0);
     float dist=sdCapsule(coord,u_joints[i],u_joints[i+1],r);
     d=smin(d,dist,30.);
   }
@@ -52,7 +60,7 @@ vec3 shadeFishFromDistance(float d,vec3 fishColor){
   float glowWidth=50.;
   float glowIntensity=.5;
   float glowFactor=exp(-max(0.,d)*(5./glowWidth));
-  vec3 bloomColor=vec3(0.4,0.9,0.5)*glowIntensity*glowFactor;
+  vec3 bloomColor=vec3(0.4, 0.5333, 0.902)*glowIntensity*glowFactor;
   return col+bloomColor;
 }
 
@@ -68,17 +76,17 @@ vec3 getHomeEffect(vec2 coord){
   vec2 head=u_joints[0];
   float d=length(coord-head)-20.;
   float alpha=smoothstep(1.,0.,d);
-  vec3 sphereColor=vec3(0.82,0.95,0.85);
+  vec3 sphereColor=vec3(0.8275, 0.8196, 0.949);
   vec3 col=mix(vec3(0.),sphereColor,alpha);
-  col+=vec3(0.3,0.8,0.45)*exp(-max(0.,d)*0.16)*0.45;
+  col+=vec3(0.4, 0.5333, 0.902)*exp(-max(0.,d)*0.16)*0.45;
   return col;
 }
 
 vec3 getAboutEffect(vec2 coord,float tailScale){
   float d=getFishDistance(coord,tailScale);
-  vec3 fishColor=vec3(.6,.8,.6);
+  vec3 fishColor=vec3(0.4, 0.5333, 0.902);
   if(d<-4.){
-    fishColor=vec3(.8,1.,.8);
+    fishColor=vec3(0.4, 0.5333, 0.902);
   }
   vec3 currentEffect=shadeFishFromDistance(d,fishColor);
   return applyTrail(coord,currentEffect,0.9);

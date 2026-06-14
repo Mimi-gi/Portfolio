@@ -2,6 +2,7 @@ type HomeSettings = {
   container: {
     width: string
     maxWidth: string
+    minHeight: string
     marginTop: string
     marginLeft: string
     gap: string
@@ -18,6 +19,11 @@ type HomeSettings = {
     handle: string
     intro: string
   }
+  links: Array<{
+    label: string
+    iconSrc: string
+    href: string
+  }>
   fontSizes: {
     name: string
     handle: string
@@ -38,15 +44,16 @@ const settings: HomeSettings = {
   container: {
     width: '80%',
     maxWidth: '1940px',
-    marginTop: '2rem',
+    minHeight: '78vh',
+    marginTop: '0.5rem',
     marginLeft: '1rem',
     gap: '0.9rem',
   },
   colors: {
-    cardBackground: 'rgba(188, 255, 161, 0.41)',
-    primaryText: '#ffffff',
-    secondaryText: '#d8d8d8',
-    introText: '#efefef',
+    cardBackground: 'rgba(57, 57, 136, 0.41)',
+    primaryText: '#dddeff',
+    secondaryText: '#cbcdef',
+    introText: '#dddeff',
     iconBorder: '#dcdcdc',
   },
   text: {
@@ -54,6 +61,23 @@ const settings: HomeSettings = {
     handle: '東京科学大学　情報理工学院　数理計算科学系　B2\n東京科学大学デジタル創作同好会 traP',
     intro: 'ゲーム制作を中心に色々やっています。ピクセルアートとシェーダーを組み合わせたインタラクティブな表現が好き。', 
   },
+  links: [
+    {
+      label: 'X',
+      iconSrc: 'https://www.google.com/s2/favicons?domain=x.com&sz=64',
+      href: 'https://x.com/Min_minda_ha',
+    },
+    {
+      label: 'unityroom',
+      iconSrc: 'https://www.google.com/s2/favicons?domain=unityroom.com&sz=64',
+      href: 'https://unityroom.com/users/i7zd98o0gubs3pq6rayc',
+    },
+    {
+      label: 'shaderToy',
+      iconSrc: 'https://www.google.com/s2/favicons?domain=shadertoy.com&sz=64',
+      href: 'https://www.shadertoy.com/user/Mimi',
+    },
+  ],
   fontSizes: {
     name: '3rem',
     handle: '1rem',
@@ -77,13 +101,17 @@ export default function Home() {
       style={{
         width: settings.container.width,
         maxWidth: settings.container.maxWidth,
+        minHeight: settings.container.minHeight,
         marginTop: settings.container.marginTop,
         marginLeft: settings.container.marginLeft,
         padding: '0.8rem',
         background: settings.colors.cardBackground,
+        border: `1px solid ${settings.colors.iconBorder}`,
       }}
     >
+      {/* アイコン + 名前/所属のヒーロー行 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: settings.container.gap }}>
+        {/* プロフィールアイコン枠 */}
         <div
           style={{
             width: settings.icon.width,
@@ -96,6 +124,7 @@ export default function Home() {
             background: 'rgba(0, 0, 0, 0.2)',
           }}
         >
+          {/* 画像があれば表示、なければプレースホルダー表示 */}
           {settings.icon.src ? (
             <img
               src={settings.icon.src}
@@ -121,6 +150,7 @@ export default function Home() {
           )}
         </div>
 
+        {/* 名前と所属情報 */}
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <h2
             style={{
@@ -146,6 +176,7 @@ export default function Home() {
         </div>
       </div>
 
+      {/* 自己紹介テキスト */}
       <p
         style={{
           marginTop: '0.7rem',
@@ -155,6 +186,52 @@ export default function Home() {
       >
         {settings.text.intro}
       </p>
+
+      {/* 各種リンクボタン */}
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.5rem',
+          marginTop: '0.8rem',
+        }}
+      >
+        {settings.links.map((link) => (
+          <a
+            key={link.label}
+            href={link.href}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.65rem',
+              minWidth: '160px',
+              padding: '0.4rem 0.8rem',
+              borderRadius: '999px',
+              border: `1px solid ${settings.colors.iconBorder}`,
+              background: 'rgba(255, 255, 255, 0.18)',
+              color: settings.colors.primaryText,
+              fontSize: '0.85rem',
+              lineHeight: 1,
+              textDecoration: 'none',
+            }}
+          >
+            <img
+              src={link.iconSrc}
+              alt=""
+              width={20}
+              height={20}
+              style={{
+                borderRadius: '4px',
+                objectFit: 'cover',
+                flexShrink: 0,
+              }}
+            />
+            <span>{link.label}</span>
+          </a>
+        ))}
+      </div>
     </div>
   )
 }
