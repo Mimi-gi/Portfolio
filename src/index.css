@@ -4,20 +4,37 @@
   padding: 0;
 }
 
-html, body, #root {
+html,
+body {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   background-color: #0f1710;
   color: #a0d8a5; /* ドット絵風・レトロな雰囲気を出すカラー */
   font-family: 'Courier New', Courier, monospace;
   overflow-x: hidden;
 }
 
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  scroll-snap-type: y proximity;
+}
+
 /* UIレイヤー */
 .content-layer {
   position: relative;
   z-index: 1; /* canvasより手前に配置 */
-  min-height: 100vh;
+  width:100vw;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-gutter: stable both-edges;
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -35,12 +52,17 @@ html, body, #root {
 }
 
 nav {
+  position: sticky;
+  top: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 2px dashed #a0d8a5;
   padding-bottom: 1rem;
   margin-bottom: 2rem;
+  background: rgba(15, 23, 16, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 3;
 }
 
 nav .links {
@@ -48,21 +70,38 @@ nav .links {
   gap: 1.5rem;
 }
 
-nav a {
+nav button {
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
   color: #4ade80;
   text-decoration: none;
   font-weight: bold;
   font-size: 1.1rem;
-  transition: color 0.2s;
+  padding: 0.2rem 0.5rem;
+  transition: color 0.2s, border-color 0.2s;
 }
 
-nav a:hover {
+nav button:hover,
+nav button.active {
   color: #fff;
+  border-color: #4ade80;
   text-shadow: 0 0 5px #4ade80;
 }
 
 .page-content {
   flex: 1;
+}
+
+.page-section {
+  min-height: 120vh;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column; /* 【追加】中身を縦並びにする */
+  align-items: center;    /* 横方向の中央揃え（columnの場合） */
+  justify-content: center;/* 【追加】縦方向の中央揃え */
+  border-bottom: 1px dashed rgba(160, 216, 165, 0.2);
+  padding: 2rem 0;
 }
 
 /* ページ見出し等の基本スタイル */

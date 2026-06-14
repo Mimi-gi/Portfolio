@@ -9,8 +9,9 @@ import fragmentShader from '../shaders/background.frag'
 // === 節の数をここで一括管理 ===
 const JOINT_COUNT = 15;
 
-export default function BackgroundShader({ pathname }: { pathname: string }) {
+export default function BackgroundShader({ scrollIndex }: { scrollIndex: number }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null)
+  const scrollIndexRef = useRef(scrollIndex)
   
   // 実際のマウス位置と、Lerp（滑らかな追従）用のマウス位置
   const currentMouse = useMemo(() => new THREE.Vector2(0, 0), [])
@@ -44,15 +45,11 @@ export default function BackgroundShader({ pathname }: { pathname: string }) {
     rtB.setSize(size.width * dpr, size.height * dpr);
   }, [size, rtA, rtB]);
 
-  // ページに応じたインデックスを計算 (Home=0, 2DWorks=1, ShaderWorks=2, About=3)
-  const targetPageIndex = useMemo(() => {
-    if (pathname === '/2d-works') return 1.0;
-    if (pathname === '/shader-works') return 2.0;
-    if (pathname === '/about') return 3.0; // 3. 通常 (技術スタックなど)
-    return 0.0; // 1. GenerativeAnimation (Index)
-  }, [pathname]);
+  const pageIndex = useRef(scrollIndex);
 
-  const pageIndex = useRef(targetPageIndex);
+  useEffect(() => {
+    scrollIndexRef.current = scrollIndex
+  }, [scrollIndex])
 
   // --- 手続き型アニメーション(IK)用の状態 ---
   // 節の座標を保持
@@ -67,7 +64,7 @@ export default function BackgroundShader({ pathname }: { pathname: string }) {
     u_gridSize: { value: 50.0 }, // C#側のハードコード値
     u_glowStrength: { value: 8.0 },
     u_colorGrid: { value: new THREE.Color(1.0, 1.0, 1.0) },
-    u_pageIndex: { value: targetPageIndex },
+    u_pageIndex: { value: scrollIndex },
     u_joints: { value: joints }, // GPUに渡す関節配列
     u_prevFrame: { value: null }
   }), [joints]); // 初回のみ生成
@@ -145,8 +142,8 @@ export default function BackgroundShader({ pathname }: { pathname: string }) {
         }
     }
 
-    // ページのトランジションをスムーズに行う
-    pageIndex.current = THREE.MathUtils.lerp(pageIndex.current, targetPageIndex, 0.05)
+    // スクロール進行度(0..3)を補間してシェーダー遷移を滑らかにする
+    pageIndex.current = THREE.MathUtils.lerp(pageIndex.current, scrollIndexRef.current, 0.08)
     materialRef.current.uniforms.u_pageIndex.value = pageIndex.current;
 
     // 前のフレームをシェーダーに渡す
