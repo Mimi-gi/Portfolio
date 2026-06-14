@@ -1,22 +1,12 @@
 export default function Home() {
   return (
-    <div>
-      <h2>Home</h2>
-      <p>こんにちは、[あなたの名前]です。</p>
-      
-      <div style={{ marginTop: '2rem' }}>
-        <h3>Skills</h3>
-        <ul>
-          <li>Game Development (Unity, C#)</li>
-          <li>Shaders (GLSL, HLSL)</li>
-          <li>Pixel Art</li>
-        </ul>
-      </div>
-
-      <div style={{ marginTop: '2rem' }}>
-        <h3>Career / About</h3>
-        <p>ゲーム開発の経験を活かし、ドット絵とインタラクティブな表現を組み合わせた作品を作っています。</p>
-      </div>
+    <div style={{ textAlign: 'center', marginTop: '20vh' }}>
+      <h2 style={{ fontSize: '4rem', letterSpacing: '0.1em', color: '#fff', textShadow: '0 0 10px #4ade80' }}>
+        GENERATIVE ANIMATION
+      </h2>
+      <p style={{ fontSize: '1.2rem', marginTop: '1rem', color: '#a0d8a5' }}>
+        Interactive Art x Pixel Art Portfolio
+      </p>
     </div>
   )
 }

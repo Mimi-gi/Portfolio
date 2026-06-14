@@ -1,19 +1,20 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
 import { Canvas } from '@react-three/fiber'
 import Home from './pages/Home'
 import Works2D from './pages/Works2D'
 import ShaderWorks from './pages/ShaderWorks'
+import About from './pages/About'
 import BackgroundShader from './components/BackgroundShader'
 
-function App() {
+function AppContent() {
+  const location = useLocation()
+
   return (
-    <BrowserRouter>
-      {/* 常に背面で描画されるWebGL / シェーダー層（SceneManagerのような役割のルート） */}
+    <>
+      {/* 常に背面で描画されるWebGL / シェーダー層 */}
       <div className="canvas-layer">
-        {/* OrthographicCameraを使用して、画面のピクセルサイズと1:1で対応する2D平面を描画する */}
-        {/* zoomは画面全体をどれだけ映すか。後ほどWindowリサイズに合わせて自動計算させます */}
         <Canvas orthographic camera={{ position: [0, 0, 1], zoom: 1 }}>
-          <BackgroundShader />
+          <BackgroundShader pathname={location.pathname} />
         </Canvas>
       </div>
 
@@ -22,21 +23,30 @@ function App() {
         <nav>
           <h1>My Portfolio</h1>
           <div className="links">
-            <Link to="/">Home</Link>
+            <Link to="/">Top</Link>
             <Link to="/2d-works">2D Works</Link>
             <Link to="/shader-works">Shader Works</Link>
+            <Link to="/about">About</Link>
           </div>
         </nav>
 
-        {/* ページ（シーン）の中身がここで切り替わる */}
         <div className="page-content">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/2d-works" element={<Works2D />} />
             <Route path="/shader-works" element={<ShaderWorks />} />
+            <Route path="/about" element={<About />} />
           </Routes>
         </div>
       </div>
+    </>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   )
 }

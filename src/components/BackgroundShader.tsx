@@ -1,18 +1,76 @@
 import { useRef, useMemo, useEffect } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useFrame, useThree, createPortal } from '@react-three/fiber'
 import * as THREE from 'three'
 
 // 外部GLSLファイルを読み込み
 import vertexShader from '../shaders/background.vert'
 import fragmentShader from '../shaders/background.frag'
 
-export default function BackgroundShader() {
+// === 節の数をここで一括管理 ===
+const JOINT_COUNT = 15;
+
+export default function BackgroundShader({ pathname }: { pathname: string }) {
   const materialRef = useRef<THREE.ShaderMaterial>(null)
   
   // 実際のマウス位置と、Lerp（滑らかな追従）用のマウス位置
   const currentMouse = useMemo(() => new THREE.Vector2(0, 0), [])
   const targetMouse = useMemo(() => new THREE.Vector2(0, 0), [])
-  const { size } = useThree()
+  const { size, camera, gl } = useThree()
+
+  // --- FBO (Ping-Pong) setup ---
+  const bufferScene = useMemo(() => new THREE.Scene(), [])
+  const displayMaterialRef = useRef<THREE.MeshBasicMaterial>(null)
+
+  const [rtA, rtB] = useMemo(() => {
+    const dpr = window.devicePixelRatio || 1;
+    const w = window.innerWidth * dpr;
+    const h = window.innerHeight * dpr;
+    const opts: THREE.RenderTargetOptions = {
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      format: THREE.RGBAFormat,
+      type: THREE.HalfFloatType
+    };
+    return [new THREE.WebGLRenderTarget(w, h, opts), new THREE.WebGLRenderTarget(w, h, opts)];
+  }, []);
+
+  const fbTarget = useRef(rtA);
+  const fbRead = useRef(rtB);
+
+  // Resize handling for FBOs
+  useEffect(() => {
+    const dpr = window.devicePixelRatio || 1;
+    rtA.setSize(size.width * dpr, size.height * dpr);
+    rtB.setSize(size.width * dpr, size.height * dpr);
+  }, [size, rtA, rtB]);
+
+  // ページに応じたインデックスを計算 (Home=0, 2DWorks=1, ShaderWorks=2, About=3)
+  const targetPageIndex = useMemo(() => {
+    if (pathname === '/2d-works') return 1.0;
+    if (pathname === '/shader-works') return 2.0;
+    if (pathname === '/about') return 3.0; // 3. 通常 (技術スタックなど)
+    return 0.0; // 1. GenerativeAnimation (Index)
+  }, [pathname]);
+
+  const pageIndex = useRef(targetPageIndex);
+
+  // --- 手続き型アニメーション(IK)用の状態 ---
+  // 節の座標を保持
+  const joints = useMemo(() => Array.from({ length: JOINT_COUNT }, () => new THREE.Vector2(0, 0)), []);
+  const headAngle = useRef(0); // 頭の向いている角度
+
+  // マテリアルの uniforms が再レンダリングの度に初期化されないように useMemo で保持する
+  const uniforms = useMemo(() => ({
+    u_time: { value: 0 },
+    u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+    u_mouse: { value: new THREE.Vector2(0, 0) },
+    u_gridSize: { value: 50.0 }, // C#側のハードコード値
+    u_glowStrength: { value: 8.0 },
+    u_colorGrid: { value: new THREE.Color(1.0, 1.0, 1.0) },
+    u_pageIndex: { value: targetPageIndex },
+    u_joints: { value: joints }, // GPUに渡す関節配列
+    u_prevFrame: { value: null }
+  }), [joints]); // 初回のみ生成
 
   // Canvasが前面のUI要素に覆われていてイベントを拾えないため、
   // ウィンドウ全体のmousemoveイベントから座標を直接取得する
@@ -39,32 +97,100 @@ export default function BackgroundShader() {
       size.height * window.devicePixelRatio
     )
 
-    // 簡易的なLerpでマウス追従を少し滑らかにする
-    targetMouse.x = (currentMouse.x ) 
-    targetMouse.y = (currentMouse.y )
-
+    // 簡易的なLerpでマウス追従を滑らかにする
+    targetMouse.x = THREE.MathUtils.lerp(targetMouse.x, currentMouse.x, 0.1)
+    targetMouse.y = THREE.MathUtils.lerp(targetMouse.y, currentMouse.y, 0.1)
     materialRef.current.uniforms.u_mouse.value.copy(targetMouse)
+
+    // --- Procedural Animation (IK) の計算 ---
+    const dpr = window.devicePixelRatio;
+    const speed = 30.0 * dpr; // マウスを追いかける基本スピード
+    const segmentLength = 15.0 * dpr; // 節と節の間の長さ
+
+    const head = joints[0];
+    const dx = targetMouse.x - head.x;
+    const dy = targetMouse.y - head.y;
+    const distToMouse = Math.hypot(dx, dy);
+
+    // 【1. 頭部の移動(車のステアリング的)】
+    if (distToMouse > 1.0) { // マウスから少し離れている場合のみ動く
+      const targetAngle = Math.atan2(dy, dx);
+      // ±180度の範囲で最短ルートで回転させる
+      let angleDiff = targetAngle - headAngle.current;
+      angleDiff = ((angleDiff + Math.PI) % (Math.PI * 2)) - Math.PI;
+      
+      // 徐々に目標角度へ向かわせる (旋回力)
+      headAngle.current += angleDiff * 0.15;
+    }
+
+    // 向いている方向(headAngle)に沿って前進
+    // 距離が近い時はスピードを落とす
+    const actualSpeed = Math.min(speed, distToMouse * 0.1);
+    head.x += Math.cos(headAngle.current) * actualSpeed;
+    head.y += Math.sin(headAngle.current) * actualSpeed;
+
+    // 【2. 後続の節の移動 (Forward IK)】
+    for (let i = 1; i < joints.length; i++) {
+        const prev = joints[i - 1];
+        const cur = joints[i];
+        
+        const diffX = cur.x - prev.x;
+        const diffY = cur.y - prev.y;
+        const dist = Math.hypot(diffX, diffY);
+        
+        if (dist > 0) {
+            // 前の節から `segmentLength` 離れた点に現在の節を引き寄せる
+            cur.x = prev.x + (diffX / dist) * segmentLength;
+            cur.y = prev.y + (diffY / dist) * segmentLength;
+        }
+    }
+
+    // ページのトランジションをスムーズに行う
+    pageIndex.current = THREE.MathUtils.lerp(pageIndex.current, targetPageIndex, 0.05)
+    materialRef.current.uniforms.u_pageIndex.value = pageIndex.current;
+
+    // 前のフレームをシェーダーに渡す
+    materialRef.current.uniforms.u_prevFrame.value = fbRead.current.texture;
+
+    // FBOへレンダリング
+    gl.setRenderTarget(fbTarget.current);
+    gl.render(bufferScene, camera);
+    gl.setRenderTarget(null);
+
+    // バッファの入れ替え
+    const temp = fbTarget.current;
+    fbTarget.current = fbRead.current;
+    fbRead.current = temp;
+
+    // メイン画面出力用のテクスチャを更新
+    if (displayMaterialRef.current) {
+        displayMaterialRef.current.map = fbRead.current.texture;
+    }
   })
 
   return (
-    <mesh>
-      {/* PlaneGeometryのサイズをウィンドウのサイズに追従させる */}
-      {/* Orthographicカメラの視野角と合わせて、ピクセルパーフェクトな2D描画を実現する */}
-      <planeGeometry args={[size.width, size.height]} />
-      {/* GLSLシェーダーマテリアル */}
-      <shaderMaterial
-        ref={materialRef}
-        vertexShader={vertexShader}
-        fragmentShader={fragmentShader}
-        uniforms={{
-          u_time: { value: 0 },
-          u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-          u_mouse: { value: new THREE.Vector2(0, 0) },
-          u_gridSize: { value: 50.0 }, // C#側のハードコード値
-          u_glowStrength: { value: 8.0 },
-          u_colorGrid: { value: new THREE.Color(1.0, 1.0, 1.0) } // ここが緑になっていたので白色(1.0, 1.0, 1.0)に修正
-        }}
-      />
-    </mesh>
+    <>
+      {createPortal(
+        <mesh>
+          {/* PlaneGeometryのサイズをウィンドウのサイズに追従させる */}
+          {/* Orthographicカメラの視野角と合わせて、ピクセルパーフェクトな2D描画を実現する */}
+          <planeGeometry args={[size.width, size.height]} />
+          {/* GLSLシェーダーマテリアル */}
+          <shaderMaterial
+            ref={materialRef}
+            vertexShader={vertexShader}
+            fragmentShader={fragmentShader}
+            uniforms={uniforms}
+          />
+        </mesh>,
+        bufferScene
+      )}
+
+      {/* 画面に描画して反映する用 */}
+      <mesh>
+        <planeGeometry args={[size.width, size.height]} />
+        <meshBasicMaterial ref={displayMaterialRef} map={fbRead.current.texture} />
+      </mesh>
+    </>
   )
 }
