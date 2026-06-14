@@ -31,6 +31,14 @@ const skills: SkillItem[] = [
     // 例: '/images/icons/skills/game-dev.png'
     iconSrc: '/images/icons/Unity.png',
     iconAlt: 'Game Development icon',
+    name: 'VFXGraph',
+    summary: 'Unityのパーティクル表現で使用',
+  },
+    {
+    icon: 'GM',
+    // 例: '/images/icons/skills/game-dev.png'
+    iconSrc: '/images/icons/Unity.png',
+    iconAlt: 'Game Development icon',
     name: 'R3',
     summary: 'リアクティブプログラミングで使用',
   },
