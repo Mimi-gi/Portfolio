@@ -21,8 +21,8 @@ const skills: SkillItem[] = [
     {
     icon: 'GM',
     // 例: '/images/icons/skills/game-dev.png'
-    iconSrc: '/images/icons/Unity.png',
-    iconAlt: 'Game Development icon',
+    iconSrc: '/images/icons/logo_csharp.png',
+    iconAlt: 'C# icon',
     name: 'C#',
     summary: 'ゲーム制作で使用',
   },
@@ -37,16 +37,16 @@ const skills: SkillItem[] = [
     {
     icon: 'GM',
     // 例: '/images/icons/skills/game-dev.png'
-    iconSrc: '/images/icons/Unity.png',
-    iconAlt: 'Game Development icon',
+    iconSrc: '/images/icons/Cysharp.png',
+    iconAlt: 'R3 icon',
     name: 'R3',
-    summary: 'リアクティブプログラミングで使用',
+    summary: 'イベント駆動の設計をする際に使用',
   },
   {
     icon: 'GM',
     // 例: '/images/icons/skills/game-dev.png'
-    iconSrc: '/images/icons/Unity.png',
-    iconAlt: 'Game Development icon',
+    iconSrc: '/images/icons/Cysharp.png',
+    iconAlt: 'Cysharp icon',
     name: 'UniTask',
     summary: '非同期のアニメーションなどで使用',
   },
@@ -54,9 +54,9 @@ const skills: SkillItem[] = [
     icon: 'GM',
     // 例: '/images/icons/skills/game-dev.png'
     iconSrc: '/images/icons/Unity.png',
-    iconAlt: 'Game Development icon',
+    iconAlt: 'Unity icon',
     name: 'LitMotion',
-    summary: 'トゥイーンアニメーションに使用',
+    summary: 'トゥイーンアニメーション制作に使用',
   },
   {
     icon: 'SH',
@@ -102,7 +102,7 @@ export default function About() {
         <p style={{ marginTop: '0.6rem' }}>
           高校の頃に遊んだ「Leap year」「洞窟物語」に感化され、大学に入ってゲーム制作を始めました。
           <br />
-          好きなゲームジャンルとしては、アート的な観点では「インタラクティブなピクセルアート」、ゲームデザイン的な観点では「知識ゲート」が好きです。
+          好きなゲームジャンルとしては、アート的な観点では「インタラクティブなピクセルアートのゲーム」、ゲームデザイン的な観点では「知識ゲート」が好きです。
           <br />
           趣味は漫画、映画、アニメ鑑賞です。
         </p>
