@@ -53,8 +53,8 @@ const skills: SkillItem[] = [
   {
     icon: 'GM',
     // 例: '/images/icons/skills/game-dev.png'
-    iconSrc: '/images/icons/Unity.png',
-    iconAlt: 'Unity icon',
+    iconSrc: '/images/icons/litmotion_icon.png',
+    iconAlt: 'LitMotion icon',
     name: 'LitMotion',
     summary: 'トゥイーンアニメーション制作に使用',
   },
